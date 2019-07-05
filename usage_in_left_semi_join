@@ -1,0 +1,34 @@
+
+------------ Impala-----------------
+WITH
+req1 AS
+(
+ select 'R1' AS req_id, 'Resolved' AS status
+ UNION ALL
+ select 'R2', 'In_progress'
+)
+,req2 AS ( 
+  select 'R1' AS req_id, 'Manager'
+  UNION ALL
+  select 'R5', 'Supervisor'
+)
+ SELECT * FROM req1 WHERE  req_id IN (SELECT distinct req_id FROM req2)
+;
+
+------------ Hive---------------------
+WITH
+req1 AS
+(
+ select 'R1' AS req_id, 'Resolved' AS status
+ UNION ALL
+ select 'R2' AS req_id, 'In_progress' AS status
+) --SELECT * FROM req1
+,req2 AS ( 
+  select 'R1' AS req_id, 'Manager' AS approval
+  UNION ALL
+  select 'R5' AS req_id, 'Supervisor' AS approval
+)
+ SELECT * FROM req1 
+  left semi join req2 ON req1.req_id=req2.req_id
+;
+
