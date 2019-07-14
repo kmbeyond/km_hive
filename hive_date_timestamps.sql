@@ -1,6 +1,28 @@
+--------------------------Hive table with datetime/timestamp/millisec-----------------------------------------------------
+NOTE: Impala does NOT support partition with timestamp
+
+select current_date(), current_timestamp(), UNIX_TIMESTAMP(), from_unixtime(UNIX_TIMESTAMP(), 'yyyy-MM-dd HH:mm:ss.SSS');
+
+
+select cast(current_timestamp() as date); => 2019-01-07
+select to_date(current_timestamp()); => 2019-01-07
+select *, current_date() from km_txns;
+select *, FROM_UNIXTIME( UNIX_TIMESTAMP(), 'YYYY-MM-dd' ) from km_txns
+
+
+=>CAUTION: UNIX_TIMESTAMP(), from_unixtime() work at seconds level precision only
+
+select FROM_UNIXTIME( 1546890411, 'YYYY-MM-dd HH:mm:ss.S' ); => 2019-01-07 02:46:51.0
+select FROM_UNIXTIME( 1546890411666, 'YYYY-MM-dd HH:mm:ss.SSS' ); => 50989-01-02 12:01:06.000
+
+*If data has milliseconds: Extract the milliseconds, append at the end then convert to timestamp
+SELECT 1546890411666, cast(concat(cast(from_unixtime(CAST(1546890411666/1000 as BIGINT), 'yyyy-MM-dd HH:mm:ss') as String),'.',substr(cast(1546890411666 as String), 11, 3)) as timestamp);
+
+
+
 ---------------------------datetime column operations--------------------
 ---------------------------(1) As timestamp column--------------------
-create table vivid.km_ex_ts
+CREATE TABLE vivid.km_ex_ts
 (
  `create_ts` timestamp,
  `id` string,
@@ -50,7 +72,7 @@ SELECT create_ts, FROM_UNIXTIME(unix_timestamp(create_ts, 'yyyy-MM-dd hh:mm:ss.S
 
 
 --------------------(2) As milliseconds column------------------
-create table vivid.km_ex_ms
+CREATE TABLE vivid.km_ex_ms
 (
  `create_ts` bigint,
  `id` string,
@@ -62,8 +84,8 @@ create table vivid.km_ex_ms
 INSERT INTO vivid.km_ex_ms
  SELECT UNIX_TIMESTAMP()*1000, '11' AS id, 'Phil' AS name;  --unix_timestamp() gives only till seconds level
 
-select create_ts, CAST(cast(create_ts as float)/1000 AS timestamp) as create_ts_h, id, name from vivid.km_ex_ms; --RECOMMENDED
 select create_ts, from_unixtime(CAST(create_ts/1000 as BIGINT), 'yyyy-MM-dd hh:mm:ss.S') as create_ts_h, id, name from vivid.km_ex_ms;
+select create_ts, CAST(cast(create_ts as float)/1000 AS timestamp) as create_ts_h, id, name from vivid.km_ex_ms;
 select create_ts, CAST(create_ts/1000 AS timestamp) as create_ts_h, id, name from vivid.km_ex_ms;
 
 --1) Insert using Spark milliseconds
@@ -79,3 +101,5 @@ spark.sql(s"insert into vivid.km_ex_ms select * from df_km_ex_ms")
 
 import org.apache.spark.sql.types.TimestampType
 spark.sql("select * from vivid.km_ex_ms").withColumn("create_ts_2", (($"create_ts"/1000).cast("long")).cast(TimestampType)).show(false)
+
+
