@@ -2,12 +2,10 @@
 NOTE: Impala does NOT support partition with timestamp
 
 select current_date(), current_timestamp(), UNIX_TIMESTAMP(), from_unixtime(UNIX_TIMESTAMP(), 'yyyy-MM-dd HH:mm:ss.SSS');
-
+=> 2019-07-14  | 2019-07-14 19:20:20.523  | 1563146420  | 2019-07-14 19:20:20.000 
 
 select cast(current_timestamp() as date); => 2019-01-07
 select to_date(current_timestamp()); => 2019-01-07
-select *, current_date() from km_txns;
-select *, FROM_UNIXTIME( UNIX_TIMESTAMP(), 'YYYY-MM-dd' ) from km_txns
 
 
 =>CAUTION: UNIX_TIMESTAMP(), from_unixtime() work at seconds level precision only
