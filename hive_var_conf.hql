@@ -24,7 +24,7 @@ SELECT *
 ----------------------- hive_params.hql START ----------------------------------
 
 ----Execution
-----beeline -u "jdbc:hive2://bda6node10.infoftps.com:10000/default;ssl=true;principal=hive/_HOST@BDA6.INFOFTPS.COM?mapred.job.queue.name=general" -f hive_params.hql --hivevar extract_date=2019-07-23 --hiveconf conf_extract_date=2019-07-23
+----beeline -u "jdbc:hive2://bdanode10.abc.com:10000/default;ssl=true;principal=hive/_HOST@BDA6.abc.COM?mapred.job.queue.name=general" -f hive_params.hql --hivevar extract_date=2019-07-23 --hiveconf conf_extract_date=2019-07-23
 
 
 
