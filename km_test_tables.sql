@@ -23,9 +23,14 @@ set mapred.job.queue.name=general;
 WITH final_data AS (
  SELECT "", "", ""
 ) --SELECT * FROM sample_data;
+--dynamic
 INSERT INTO TABLE vivid.km_clms5 PARTITION (extract_date)
  SELECT *, '','','2019-07-01_09_57' FROM final_data;
 
+--static
+INSERT INTO TABLE vivid.km_clms5 PARTITION (extract_date='2019-08-29_15_57')
+ SELECT *, '','' FROM final_data;
+ 
 SELECT * FROM vivid.km_clms5 WHERE extract_date='2019-07-01_09_57';
 hdfs dfs -ls -t /vivid/stage/km_clms5/
 
