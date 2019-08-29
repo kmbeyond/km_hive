@@ -4,7 +4,6 @@ set mapreduce.job.queuename=harmonization;
 set hive.exec.dynamic.partition=true;  --default set to true in newer versions
 set hive.exec.dynamic.partition.mode=nonstrict;
 
-
 WITH
  --extr_dt AS (SELECT current_date AS dt)
  extr_dt AS (SELECT '${hivevar:extract_date}' AS dt)
@@ -12,7 +11,7 @@ WITH
  INSERT INTO TABLE vivid.km_ext PARTITION(extract_date)
   SELECT a.dt_ts, a.id, b.dt
     FROM rec a,extr_dt b;
-
+---------------------------------------------------------------------------------
 
 ---hiveconf---
 --set conf_extract_date=2019-07-23; --hard-coding hiveconf
