@@ -60,7 +60,7 @@ set REQUEST_POOL=general;
 WITH
  rec as (SELECT cast(unix_timestamp(now()) AS timestamp) as dt_ts, 'KM_08-29-2019_02_impala' AS id)
  INSERT INTO TABLE vivid.km_ext PARTITION(extract_date)
-  SELECT a.dt_ts, a.id, '${VAR:extract_date}'
+  SELECT a.dt_ts, a.id, '${VAR:extract_date}'  --For current date: from_timestamp(now(), 'yyyy-MM-dd')
     FROM rec a;
     
 ----------------------- impala_params.impala END ----------------------------------
