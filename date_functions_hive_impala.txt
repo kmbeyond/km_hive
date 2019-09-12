@@ -1,0 +1,13 @@
+
+
+
+--Current date in yyyy-MM-dd: 
+Hive: current_date()
+Impala: from_timestamp(now(), 'yyyy-MM-dd')
+
+--Date 7 days back: 
+Hive: date_sub(current_date(),7))
+Impala: from_timestamp(date_sub(now(),7), 'yyyy-MM-dd')
+
+
+
