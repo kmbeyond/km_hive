@@ -19,7 +19,8 @@ Output:
 +---+----------+--------+--------+
 
  with data AS ( 
-   SELECT ID,START_TIME,END_TIME FROM kmdb.km_time_overlaps
+   SELECT ID,START_TIME,END_TIME
+    FROM kmdb.km_time_overlaps
     ORDER BY ID,START_TIME,END_TIME
  )
  ,d AS (
@@ -38,7 +39,7 @@ Output:
       from ds
  )
  ,id_dts AS (
-  SELECT ID, min(dt) as start_time, max(dt) as end_time
+  SELECT ID, grp,min(dt) as start_time, max(dt) as end_time
    from g
     group by ID, grp ORDER BY ID, grp
  )
