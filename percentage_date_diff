@@ -1,0 +1,55 @@
+
+
+
+
+
+---Option#1: Using CTE
+WITH ds_diff AS (
+SELECT extract_date, days_diff, count(1) AS rec_cnt FROM (
+SELECT extract_date, d_tr, DATEDIFF(TO_DATE(extract_date), TO_DATE(d_tr)) AS days_diff
+ FROM --settlement_db.tbc_sig_credit_stlmt
+   (
+     SELECT '2020-01-10' as extract_date, '2020-01-09' as d_tr
+     UNION ALL
+     SELECT '2020-01-10' AS extract_date, '2020-01-08' AS d_tr
+     UNION ALL
+     SELECT '2020-01-10' AS extract_date, '2020-01-09' AS d_tr
+  ) testdata
+  WHERE extract_date>='2020-01-01' --LIMIT 10
+) t GROUP BY extract_date, days_diff
+) 
+,ds_total AS (
+ SELECT extract_date, sum(rec_cnt) AS total FROM ds_diff
+  GROUP BY extract_date
+)
+SELECT a.extract_date, a.days_diff, cast((a.rec_cnt*100.0/b.total) AS Decimal(10,4)) as prct
+ FROM ds_diff a, ds_total b
+  WHERE a.extract_date=b.extract_date AND days_diff<=10
+  ORDER BY a.extract_date desc, a.days_diff
+;
+
+
+---Option#2: partition by
+SELECT extract_date, days_diff, cast((sum(days_cnt)*100.0/sum(sum(days_cnt)) over (partition by extract_date)) AS Decimal(10,2)) as prct
+ FROM (
+  SELECT extract_date, days_diff, count(1) AS days_cnt FROM (
+   SELECT extract_date, d_tr, DATEDIFF(TO_DATE(extract_date), TO_DATE(d_tr)) AS days_diff
+    FROM --settlement_db.tbc_sig_credit_stlmt
+      (
+       SELECT '2020-01-10' as extract_date, '2020-01-09' as d_tr
+       UNION ALL
+       SELECT '2020-01-10' AS extract_date, '2020-01-08' AS d_tr
+       UNION ALL
+       SELECT '2020-01-10' AS extract_date, '2020-01-09' AS d_tr
+      ) testdata
+     WHERE extract_date='2020-01-09'
+     --LIMIT 10
+  ) t WHERE days_diff<=10 
+      GROUP BY extract_date,days_diff
+ ) de GROUP BY extract_date,days_diff
+ ORDER BY extract_date desc,days_diff
+ ;
+ 
+ 
+ 
+ 
