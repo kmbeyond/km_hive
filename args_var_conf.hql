@@ -48,7 +48,7 @@ SELECT *
  --hivevar extract_date=2019-07-23 \
  --hiveconf conf_extract_date=2019-07-23
 
-
+ --hivevar "start_dt_m5='${start_dt_m5}'"
 
 
 ------------------------------Impala-------------------------------------------------
