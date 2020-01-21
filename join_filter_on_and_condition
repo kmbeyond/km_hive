@@ -1,0 +1,37 @@
+
+
+
+explain 
+WITH
+cust AS (
+ SELECT 3 AS id, 'Jake' AS name
+ UNION ALL
+ SELECT 4 AS id, 'Adam' AS name
+)
+,txns AS (
+  SELECT 1 AS id, 3 AS cust_id, 9.99 AS amnt
+  UNION ALL
+  SELECT 2 AS id, 3 AS cust_id, 3.33 AS amnt
+  UNION ALL
+  SELECT 3 AS id, 4 AS cust_id, 6.66 AS amnt
+)
+SELECT c.id, t.id,t.amnt
+ FROM cust c
+  LEFT JOIN txns t ON t.cust_id=c.id --AND t.amnt>=9.99
+ WHERE t.amnt>=9.99
+
+
+---#1: condition in JOIN caluse
++----+------+------+
+| id | id   | amnt |
++----+------+------+
+| 3  | 1    | 9.99 |
+| 4  | NULL | NULL |
++----+------+------+
+
+---#2: condition in WHERE
++----+----+------+
+| id | id | amnt |
++----+----+------+
+| 3  | 1  | 9.99 |
++----+----+------+
