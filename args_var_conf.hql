@@ -1,3 +1,36 @@
+
+
+------km_hive_impala_params.sh-----
+#!/bin/bash
+#export PYTHON_EGG_CACHE=./myeggs
+
+hive_url="jdbc:hive2://bda1.mk.com:10000/default;ssl=true;principal=hive/_HOST@BDA1.km.COM"
+impala_d="bda1node17"
+db_hive="vivid"
+sReqId="aaaaa-11111-2222222"
+s_process_dt="2020-10-26"
+
+
+beeline -u "${hive_url}" -f hive_params.hql  \
+       --hivevar "data_comm_schema=${db_hive}" --hivevar "process_dt='$s_process_dt'" --hivevar "ReqId='${sReqId}'"
+
+impala-shell --ssl -i ${impala_d} -f impala_params.impala \
+      --var=data_comm_schema=${db_hive} --var=ReqId="${sReqId}" --var=process_dt="${s_process_dt}"
+
+
+
+
+------- hive_params.hql----
+SELECT current_date, '${hivevar:process_dt}' AS proc_dt, '${hivevar:ReqId}' as req_id;
+
+------- impala_params.impala------
+set REQUEST_POOL=general;
+
+SELECT now() AS now, '${VAR:ReqId}' AS ReqId, '${VAR:process_dt}' AS Prc_dt
+--------------------
+
+
+--------------------------------------------with a table partition column
 --Table used for test
 CREATE EXTERNAL TABLE vivid.km_ext
 (
@@ -5,8 +38,7 @@ CREATE EXTERNAL TABLE vivid.km_ext
  id string
 )
 PARTITIONED BY (extract_date STRING)
-ROW FORMAT DELIMITED
-FIELDS TERMINATED BY ','
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
 LOCATION '/vivid/stage/km_ext';
 
 -----------------------------hive---------------------------------------------
@@ -15,14 +47,14 @@ set mapreduce.job.queuename=general;
 set hive.exec.dynamic.partition=true;  --default set to true in newer versions
 set hive.exec.dynamic.partition.mode=nonstrict;
 
---Option#1
+--Option#1: extract_date input arg as last column
 WITH
  rec as (SELECT current_timestamp() AS dt_ts, 'KM_07-23-2019_04_scr' AS id)
  INSERT INTO TABLE vivid.km_ext PARTITION(extract_date)
   SELECT a.dt_ts, a.id, '${hivevar:extract_date}'
     FROM rec a;
     
---Option#2
+--Option#2: If need to be used in a CTE or table (or for example, in condition) & join later
 WITH
  --extr_dt AS (SELECT current_date AS dt)
  extr_dt AS (SELECT '${hivevar:extract_date}' AS dt)
@@ -33,7 +65,7 @@ WITH
 
 ---Query now
 
----hiveconf---
+------------------------hiveconf------------
 --set conf_extract_date=2019-07-23; --hard-coding hiveconf
 
 SELECT *
