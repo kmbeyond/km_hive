@@ -8,11 +8,11 @@ hive_url="jdbc:hive2://bda1.mk.com:10000/default;ssl=true;principal=hive/_HOST@B
 impala_d="bda1node17"
 db_hive="vivid"
 sReqId="aaaaa-11111-2222222"
-s_process_dt="2020-10-26"
+s_process_dt="2020-01-20 12:48"
 
 
 beeline -u "${hive_url}" -f hive_params.hql  \
-       --hivevar "data_comm_schema=${db_hive}" --hivevar "process_dt='$s_process_dt'" --hivevar "ReqId='${sReqId}'"
+       --hivevar "data_comm_schema=${db_hive}" --hivevar "process_dt=${s_process_dt}" --hivevar "ReqId=${sReqId}"
 
 impala-shell --ssl -i ${impala_d} -f impala_params.impala \
       --var=data_comm_schema=${db_hive} --var=ReqId="${sReqId}" --var=process_dt="${s_process_dt}"
@@ -27,7 +27,7 @@ SELECT current_date, '${hivevar:process_dt}' AS proc_dt, '${hivevar:ReqId}' as r
 set REQUEST_POOL=general;
 
 SELECT now() AS now, '${VAR:ReqId}' AS ReqId, '${VAR:process_dt}' AS Prc_dt
---------------------
+---------------------------------------------------------------------------------------------------------------------
 
 
 --------------------------------------------with a table partition column
