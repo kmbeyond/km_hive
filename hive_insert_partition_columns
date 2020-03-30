@@ -1,0 +1,37 @@
+
+
+
+------------------Partitioned with multiple columns -----
+CREATE EXTERNAL TABLE kmdb.km_tbl2 (c1 STRING) PARTITIONED BY (p1 STRING, p2 STRING) LOCATION '/kmdb/common/km_tbl2';
+
+#** NOTE: WHEN Creating non-partitioned table with same columns, CREATE IN SAME SEQUENCE: c1,p1,p2
+#So easy insert: column sequence should match in SELECT, BUT NOT VICE-VERSA
+#set hive.exec.dynamic.partition.mode=nonstrict;
+
+#CREATE EXTERNAL TABLE vivid.km_tbl1 (c1 STRING, p1 STRING, p2 STRING) LOCATION '/kmdb/common/km_tbl1';
+#INSERT INTO kmdb.km_tbl2 PARTITION(p1, p2) SELECT * FROM kmdb.km_tbl1;
+
+#BELOW IS NOT GOOD WAY, but if done, use insert with manual select columns
+CREATE EXTERNAL TABLE kmdb.km_tbl1 (c1 STRING, p2 STRING, p1 STRING) LOCATION '/kmdb/common/km_tbl1';
+
+WITH
+data AS (
+ SELECT "1" AS c1, 'p2_1' AS p2, 'p1_1' AS p1
+ UNION ALL
+ SELECT "2" AS c1, 'p2_2' AS p2, 'p1_2' as p1
+)INSERT INTO kmdb.km_tbl1 SELECT * FROM data;
+
+
+INSERT INTO kmdb.km_tbl2 PARTITION(p1,p2) SELECT c1,p1,p2 FROM kmdb.km_tbl1;
+
+If inserted using SELECT * FROM kmdb.km_tbl1:
++-------------+-------------+-------------+--+
+| km_tbl2.c1  | km_tbl2.p1  | km_tbl2.p2  |
++-------------+-------------+-------------+--+
+| 1           | p1_1        | p2_1        |
+| 2           | p1_2        | p2_2        |
++-------------+-------------+-------------+--+
+----------------------------------
+
+
+
