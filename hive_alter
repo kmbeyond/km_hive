@@ -1,0 +1,17 @@
+
+
+
+CREATE EXTERNAL TABLE kmdb.test_ext (id STRING)
+ LOCATION '/kmdb/common/test_ext';
+
+#rename
+ALTER TABLE vivid.test_ext
+ RENAME TO kmdb.test_ext_bkp;
+
+hdfs dfs –mv /kmdb/common/test_ext /kmdb/common/test_ext_bkp
+echo "1006" | hdfs dfs -put - /kmdb/common/test_ext_bkp/echo_data.txt
+
+#alter location
+ALTER TABLE kmdb.test_ext_bkp
+ SET LOCATION '/kmdb/common/test_ext_bkp';
+
