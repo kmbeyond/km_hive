@@ -14,13 +14,19 @@ select FROM_UNIXTIME( 1546890411, 'YYYY-MM-dd HH:mm:ss.S' ); => 2019-01-07 02:46
 select FROM_UNIXTIME( 1546890411666, 'YYYY-MM-dd HH:mm:ss.SSS' ); => 50989-01-02 12:01:06.000
 
 *If data has milliseconds: Extract the milliseconds, append at the end then convert to timestamp
-SELECT 1546890411666, cast(concat(cast(from_unixtime(CAST(1546890411666/1000 as BIGINT), 'yyyy-MM-dd HH:mm:ss') as String),'.',substr(cast(1546890411666 as String), 11, 3)) as timestamp);
+SELECT 1546890411666
+ ,cast(concat( cast(from_unixtime(CAST(1546890411666/1000 as BIGINT), 'yyyy-MM-dd HH:mm:ss') as String),
+         '.', substr(cast(1546890411666 as String), 11, 3)) as timestamp);
 
-
++----------------+--------------------------+--+
+|      _c0       |           _c1            |
++----------------+--------------------------+--+
+| 1546890411666  | 2019-01-07 14:46:51.666  |
++----------------+--------------------------+--+
 
 ---------------------------datetime column operations--------------------
 ---------------------------(1) As timestamp column--------------------
-CREATE TABLE vivid.km_ex_ts
+CREATE EXTERNAL TABLE vivid.km_ex_ts
 (
  `create_ts` timestamp,
  `id` string,
@@ -58,6 +64,11 @@ df_km_ex_ts = df_km_ex_ts.withColumn("create_ts", lit(new java.text.SimpleDateFo
 df_km_ex_ts.createOrReplaceTempView("df_km_ex_ts")
 spark.sql(s"INSERT INTO vivid.km_ex_ts SELECT * FROM df_km_ex_ts")
 
+df_km_ex_ts=spark.createDataFrame([("5", "Spark Insert")]).toDF("id", "name")
+df_km_ex_ts.withColumn("create_ts", F.lit(datetime.now().strftime( '%Y-%m-%d %H:%M:%S' ) ) ) \
+ .select("create_ts", "id", "name") \
+ .write.insertInto("vivid.km_ex_ts")
+ 
 --HQL
 SELECT * from vivid.km_ex_ts
 SELECT create_ts, to_date(create_ts) as create_dt, id, name FROM vivid.km_ex_ts
@@ -70,7 +81,7 @@ SELECT create_ts, FROM_UNIXTIME(unix_timestamp(create_ts, 'yyyy-MM-dd hh:mm:ss.S
 
 
 --------------------(2) As milliseconds column------------------
-CREATE TABLE vivid.km_ex_ms
+CREATE EXTERNAL TABLE vivid.km_ex_ms
 (
  `create_ts` bigint,
  `id` string,
