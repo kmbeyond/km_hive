@@ -16,7 +16,16 @@ msck repair table kmdb.km_clms5;
 
 DESC FORMATTED kmdb.km_clms5;
 
-
+---------------------With columns to be enclosed by double quote
+CREATE EXTERNAL table kmdb.km_test_quotes
+ (a string, b string, c string, d string)
+ ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+ WITH SERDEPROPERTIES (
+   "separatorChar" = "|",
+   "quoteChar"     = "\""
+ )  
+ LOCATION '/db/km/test_quotes/';
+ 
 ---------------------
 ----From existing table
 
