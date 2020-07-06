@@ -112,3 +112,37 @@ import org.apache.spark.sql.types.TimestampType
 spark.sql("select * from vivid.km_ex_ms").withColumn("create_ts_2", (($"create_ts"/1000).cast("long")).cast(TimestampType)).show(false)
 
 
+
+
+
+------- date operations
+--Current date in yyyy-MM-dd: 
+Hive: current_date()
+Impala: from_timestamp(now(), 'yyyy-MM-dd')
+
+--Date 7 days back: 
+Hive: date_sub(current_date(),7))
+Impala: from_timestamp(date_sub(now(),7), 'yyyy-MM-dd')
+
+#Ex:1
+SELECT count(1) from pdw.tef_mrchnt_info a
+ WHERE a.extract_date in (select max(b.extract_date) FROM pdw.tef_mrchnt_info b
+            WHERE b.extract_date>=from_timestamp(date_sub(now(),7), 'yyyy-MM-dd'));     --Hive current date: >=date_sub(current_date(),7));
+
+#Ex:2
+WITH
+testdata AS (SELECT *
+ FROM (
+  SELECT '4445031779424' AS merchant_id, '5541' AS mrch_mcc, '2020-07-04' as last_run_dt
+  UNION ALL
+  SELECT '520000688938' AS merchant_id, '7299' AS mrch_mcc,'2020-03-10' AS last_run_dt
+  UNION ALL
+  SELECT '19265399' AS merchant_id, '8011' AS mrch_mcc, '2020-04-10' AS last_run_dt
+ ) t1
+)
+,input_mrchnts AS ( SELECT * FROM testdata WHERE last_run_dt < from_timestamp(date_sub(now(),60), 'yyyy-MM-dd') )   --Hive: last_run_dt < date_sub(current_date, 60)
+SELECT * FROM input_mrchnts;
+
+---Months
+add_months(date_add(now(), 1-day(now())), -1)
+
