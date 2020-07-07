@@ -13,19 +13,25 @@ s_process_dt="2020-01-20 12:48"
 
 
 beeline -u "${hive_url}" -f hive_params.hql  \
-       --hivevar "data_comm_schema=${db_hive}" --hivevar "pool_name=${pool_name}" --hivevar "process_dt=${s_process_dt}" --hivevar "ReqId=${sReqId}"
+       --hivevar db_name=${db_hive} \
+       --hivevar pool_name=${pool_name} \
+       --hivevar "process_dt=${s_process_dt}" \
+       --hivevar "ReqId=${sReqId}"
 
 impala-shell --ssl -i ${impala_d} -f impala_params.impala \
-      --var=data_comm_schema=${db_hive} --var=ReqId="${sReqId}" --var=process_dt="${s_process_dt}"
+      --var=data_comm_schema=${db_hive} \
+      --var=ReqId="${sReqId}" --var=process_dt="${s_process_dt}"
 
 
 
 
 ------- hive_params.hql----
-set mapred.job.queue.name=${hivevar:pool_name};
-SELECT current_date, '${hivevar:process_dt}' AS proc_dt, '${hivevar:ReqId}' as req_id;
+--CAN REFER ARGUMENTS IN BOTH WAYS: ${process_dt}  or ${hivevar:process_dt}
 
---CAN ALSO USE directly: '${process_dt}'
+set mapred.job.queue.name=${pool_name};
+SELECT current_date, '${hivevar:process_dt}' AS proc_dt, '${hivevar:ReqId}' as req_id FROM ${db_name}.km_tbl;
+
+
 
 
 ------- impala_params.impala------
