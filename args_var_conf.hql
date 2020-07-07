@@ -7,12 +7,13 @@
 hive_url="jdbc:hive2://bda1.mk.com:10000/default;ssl=true;principal=hive/_HOST@BDA1.km.COM"
 impala_d="bda1node17"
 db_hive="vivid"
+pool_name="general"
 sReqId="aaaaa-11111-2222222"
 s_process_dt="2020-01-20 12:48"
 
 
 beeline -u "${hive_url}" -f hive_params.hql  \
-       --hivevar "data_comm_schema=${db_hive}" --hivevar "process_dt=${s_process_dt}" --hivevar "ReqId=${sReqId}"
+       --hivevar "data_comm_schema=${db_hive}" --hivevar "pool_name=${pool_name}" --hivevar "process_dt=${s_process_dt}" --hivevar "ReqId=${sReqId}"
 
 impala-shell --ssl -i ${impala_d} -f impala_params.impala \
       --var=data_comm_schema=${db_hive} --var=ReqId="${sReqId}" --var=process_dt="${s_process_dt}"
@@ -21,7 +22,11 @@ impala-shell --ssl -i ${impala_d} -f impala_params.impala \
 
 
 ------- hive_params.hql----
+set mapred.job.queue.name=${hivevar:pool_name};
 SELECT current_date, '${hivevar:process_dt}' AS proc_dt, '${hivevar:ReqId}' as req_id;
+
+--CAN ALSO USE directly: '${process_dt}'
+
 
 ------- impala_params.impala------
 set REQUEST_POOL=general;
