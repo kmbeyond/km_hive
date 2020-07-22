@@ -3,7 +3,7 @@
 
 --Current date in yyyy-MM-dd: 
 HIVE: current_date()
-IMPALA: from_timestamp(now(), 'yyyy-MM-dd HH:mm:ss')
+IMPALA: from_timestamp(now(), 'yyyy-MM-dd HH:mm:ss.SSS')
 
 --Date 7 days back: 
 HIVE: date_sub(current_date(),7))
