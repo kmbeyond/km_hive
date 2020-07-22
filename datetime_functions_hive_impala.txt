@@ -1,0 +1,40 @@
+
+
+
+--Current date in yyyy-MM-dd: 
+HIVE: current_date()
+IMPALA: from_timestamp(now(), 'yyyy-MM-dd HH:mm:ss')
+
+--Date 7 days back: 
+HIVE: date_sub(current_date(),7))
+IMPALA: from_timestamp(date_sub(now(),7), 'yyyy-MM-dd')
+
+
+--Current datetime/timestamp
+Hive: current_timestamp()
+IMPALA: from_timestamp(now(), 'yyyy-MM-dd HH:mm:ss')
+
+--datetime 7 days back
+Hive: from_unixtime(unix_timestamp(current_timestamp)-7*86400,'yyyy-MM-dd HH:mm:ss');
+Impala: from_timestamp(date_sub(now(),7), 'yyyy-MM-dd HH:mm:ss')
+
+
+
+--filter on date
+
+--Impala
+WITH
+testdata AS (SELECT *
+ FROM (
+  SELECT '4445031779424' AS merchant_id, '5541' AS mrch_mcc, '2020-05-23 13:00:00' as last_run_dt
+  UNION ALL
+  SELECT '520000688938' AS merchant_id, '7299' AS mrch_mcc,'2020-05-23 09:00:00' AS last_run_dt
+  UNION ALL
+  SELECT '19265399' AS merchant_id, '8011' AS mrch_mcc, null AS last_run_dt
+ ) t1
+)
+,input_mrchnts AS ( SELECT * FROM testdata WHERE last_run_dt < from_timestamp(date_sub(now(),60), 'yyyy-MM-dd HH:mm:ss') )   --Hive: last_run_dt < date_sub(current_date, 60)
+SELECT * FROM input_mrchnts;
+
+
+
