@@ -43,5 +43,18 @@ SELECT *
 
 
 
+-------------Conversion
+
+-----Format conversion
+--String (yyyyMMdd) -> String (yyyy-MM-dd)
+-Hive
+
+-Impala
+SELECT from_unixtime(unix_timestamp('20200827', 'yyyyMMdd'));
+=> 2020-08-27 00:00:00
+
+
+
+
 
 
