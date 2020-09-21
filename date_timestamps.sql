@@ -56,6 +56,7 @@ spark.sql(s"SELECT * FROM kmdb.km_ex_ts").show(false)
 
 
 --2) Insert using Spark datetime
+#Spark-Scala
 var create_time_ts = new java.text.SimpleDateFormat("yyyy-MM-dd hh:mm:ss.S").format(new java.util.Date())
 
 var df_km_ex_ts = Seq(("5", "Spark Insert")).toDF("id", "name")
@@ -64,11 +65,19 @@ df_km_ex_ts = df_km_ex_ts.withColumn("create_ts", lit(new java.text.SimpleDateFo
 df_km_ex_ts.createOrReplaceTempView("df_km_ex_ts")
 spark.sql(s"INSERT INTO kmdb.km_ex_ts SELECT * FROM df_km_ex_ts")
 
-df_km_ex_ts=spark.createDataFrame([("5", "Spark Insert")]).toDF("id", "name")
+
+#Pyspark
+df_km_ex_ts=spark.createDataFrame([( str(datetime.now().strftime('%Y%m%d%H%M%S')), 'pyspark1'), (str(datetime.now().strftime('%Y%m%d%H%M%S')),'pyspark2')] ).toDF('id', 'name')
+from datetime import datetime
+from pyspark.sql.functions as F
 df_km_ex_ts.withColumn("create_ts", F.lit(datetime.now().strftime( '%Y-%m-%d %H:%M:%S' ) ) ) \
  .select("create_ts", "id", "name") \
  .write.insertInto("kmdb.km_ex_ts")
- 
+
+#OR: .select(F.lit(datetime.now()).alias('create_ts'), 'id', 'name' ).write.insertInto("kmdb.km_ex_ts")
+
+
+
 --HQL
 SELECT * from kmdb.km_ex_ts
 SELECT create_ts, to_date(create_ts) as create_dt, id, name FROM kmdb.km_ex_ts
