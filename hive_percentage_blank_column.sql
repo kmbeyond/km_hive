@@ -13,3 +13,11 @@ SELECT a.pin_flag, a.cnt, a.total, a.percent, b.blank_count, CAST((b.blank_count
  FROM total_metrics a,blnk_id b WHERE a.pin_flag=b.pin_flag
 ;
 
++----------+-------+--------+---------+-------------+---------------+
+| pin_flag | cnt   | total  | percent | blank_count | blank_percent |
++----------+-------+--------+---------+-------------+---------------+
+| SIG      | 97012 | 211090 | 45.95   | 126         | 0.05          |
+| PIN      | 20921 | 211090 | 9.91    | 20921       | 9.91          |
+| AUTH     | 93157 | 211090 | 44.13   | 0           | 0.00          |
++----------+-------+--------+---------+-------------+---------------+
+
