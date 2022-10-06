@@ -69,18 +69,25 @@ CREATE EXTERNAL table kmdb.km_test_quotes
 ---------------------
 ----From existing table
 
-
+--Create table but no data is copied
 CREATE EXTERNAL TABLE kmdb.km_tbl10
 LIKE kmdb.km_clms5
 LOCATION '/db/stage/km_tbl10'
 ;
 
----CTAS
-CREATE EXTERNAL TABLE kmdb.new_test
-ROW FORMAT DELIMITED
-FIELDS TERMINATED BY '|' 
-STORED AS TEXTFILE 
-AS select * from kmdb.clms5;
 
+---CTAS (create & load data)
+CREATE EXTERNAL TABLE kmdb.new_test
+ ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' 
+ STORED AS TEXTFILE
+ LOCATION '/km/new_test'
+ AS select * from kmdb.clms5;
+
+CREATE EXTERNAL TABLE kmdb.new_test_parquet
+ STORED AS PARQUET
+ LOCATION '/km/new_test_parquet'
+ AS 
+ WITH cols_data AS (SELECT * FROM kmdb.clms5)
+ select * from cols_data;
 
 
