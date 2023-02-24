@@ -1,0 +1,58 @@
+
+
+------------read from subdirectories
+SET mapred.input.dir.recursive=TRUE;
+#NOT NEEDED;;; SET hive.mapred.supports.subdirectories=TRUE;
+
+mkdir -p km_test_subdir_data/run_dt=2023-02-24/app_100
+echo "100,100" > km_test_subdir_data/run_dt=2023-02-24/app_100/data_100.csv
+mkdir -p km_test_subdir_data/run_dt=2023-02-24/app_101
+echo "101,101" > km_test_subdir_data/run_dt=2023-02-24/app_101/data_101.csv
+mkdir -p km_test_subdir_data/run_dt=2023-02-24/app_123
+echo "123,123" > km_test_subdir_data/run_dt=2023-02-24/app_123/data_123.csv
+ls -l km_test_subdir_data/*/*
+
+hdfs dfs -mkdir /km/km_test_subdir_data/
+hdfs dfs -put km_test_subdir_data /km/
+
+hive
+CREATE EXTERNAL TABLE vivid.km_test_subdir_data (c1 STRING) PARTITIONED BY (run_dt STRING) LOCATION '/km/km_test_subdir_data';
+--ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE
+
+msck repair table kmdb.km_test_subdir_data;
+SELECT * from kmdb.km_test_subdir_data;
++-------------------------+-----------------------------+
+| km_test_subdir_data.c1  | km_test_subdir_data.run_dt  |
++-------------------------+-----------------------------+
+| 100,100                 | 2023-02-24                  |
+| 101,101                 | 2023-02-24                  |
+| 123,123                 | 2023-02-24                  |
++-------------------------+-----------------------------+
+
+---rename (dir that are not in partition format) in format as partitioned
+EX: /km/km_test_subdir_data/run_dt=2023-02-24/app_100  -> /km/km_test_subdir_data/run_dt=2023-02-24/app=app_100
+
+for f in `hdfs dfs -ls /km/km_test_subdir_data/ | awk '{print $8}'`;
+do
+ echo "*$f ";
+ for f2 in `hdfs dfs -ls "$f" | awk '{print $8}'`; do
+  echo " -> $f2";
+  f2_dir=`basename $f2`;
+  new_dir=`echo $f2 | sed -e "s/${f2_dir}/app=${f2_dir}/g"`
+  echo " --> rename to "$new_dir
+  hdfs dfs -mv $f2 $new_dir
+ done
+done
+
+DROP table kmdb.km_test_subdir_data;
+CREATE EXTERNAL TABLE kmdb.km_test_subdir_data (c1 STRING) PARTITIONED BY (run_dt STRING, app STRING) LOCATION '/km/km_test_subdir_data';
+----ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE
+msck repair table kmdb.km_test_subdir_data;
+SELECT * from kmdb.km_test_subdir_data;
++-------------------------+-----------------------------+--------------------------+
+| km_test_subdir_data.c1  | km_test_subdir_data.run_dt  | km_test_subdir_data.app  |
++-------------------------+-----------------------------+--------------------------+
+| 100,100                 | 2023-02-24                  | app_100                  |
+| 101,101                 | 2023-02-24                  | app_101                  |
+| 123,123                 | 2023-02-24                  | app_123                  |
++-------------------------+-----------------------------+--------------------------+
