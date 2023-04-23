@@ -10,15 +10,102 @@ Hive: current_timestamp()
 IMPALA: now() => 2020-07-28 12:02:12.264425000
         from_timestamp(now(), 'yyyy-MM-dd HH:mm:ss.SSS')  => 2020-07-28 12:04:17.415
 
--------------------------------
+
+Hive:
+select current_date(), current_timestamp(), UNIX_TIMESTAMP(), from_unixtime(UNIX_TIMESTAMP(), 'yyyy-MM-dd HH:mm:ss.SSS');
+=> 2019-07-14  | 2019-07-14 19:20:20.523  | 1563146420  | 2019-07-14 19:20:20.000 
+----CAUTION: UNIX_TIMESTAMP(), from_unixtime() work at seconds level precision only
+
+select cast(current_timestamp() as date); => 2019-01-07
+select to_date(current_timestamp()); => 2019-01-07
+
+
+
+
+
+-------------------------------date back/future
 --Date 7 days back: 
-HIVE: date_sub(current_date(),7))
+HIVE:
+SELECT current_date(), date_add(current_date(), 1);
+SELECT current_date(), date_sub(current_date(), 7);
+
 IMPALA: from_timestamp(date_sub(now(),7), 'yyyy-MM-dd')
 
+
+--subtract hours
+SELECT from_unixtime(current_timestamp()-4*3600, 'MM/dd/yyyy HH:mm:ss') as dt_4hrs_back;
++----------------------+
+|     dt_4hrs_back     |
++----------------------+
+| 04/23/2023 07:44:37  |
++----------------------+
 
 --datetime 7 days back
 Hive: from_unixtime(unix_timestamp(current_timestamp)-7*86400,'yyyy-MM-dd HH:mm:ss');
 Impala: from_timestamp(date_sub(now(),7), 'yyyy-MM-dd HH:mm:ss')
+
+
+SELECT current_date, date_add(current_date, 1-day(current_date)) as first_day_of_month;
+SELECT concat(substring(add_months(date_add(current_date, 1-day(current_date)),-6),0,4), substring(add_months(date_add(current_date, 1-day(current_date)),-6),6,2), '01');
++-----------+
+|    _c0    |
++-----------+
+| 20221001  |
++-----------+
+
+
+
+-------------Conversion
+ms<->string
+
+
+-->string to milliseconds
+select unix_timestamp('2019-01-07 14:46:51', 'YYYY-MM-dd HH:mm:ss') as dt_ms;
++-------------+
+|    dt_ms    |
++-------------+
+| 1546199211  |
++-------------+
+
+-->ms into date time string
+
+
+select FROM_UNIXTIME( 1546890411, 'YYYY-MM-dd HH:mm:ss.S' ); => 2019-01-07 14:46:51.0
+select FROM_UNIXTIME( 1546890411666, 'YYYY-MM-dd HH:mm:ss.SSS' ); => 50989-01-02 00:01:06.000
+
+
+*If data has long milliseconds(>10 digits): Extract the milliseconds, append at the end then convert to timestamp
+SELECT 1546890411666, cast(concat(cast(from_unixtime(CAST(1546890411666/1000 as BIGINT), 'yyyy-MM-dd HH:mm:ss') as String),'.',substr(cast(1546890411666 as String), 11, 3)) as timestamp) as dt;
++----------------+--------------------------+
+|      _c0       |            dt            |
++----------------+--------------------------+
+| 1546890411666  | 2019-01-07 14:46:51.666  |
++----------------+--------------------------+
+
+
+
+
+-----Format conversion
+
+--String (yyyyMMdd) -> String (yyyy-MM-dd)
+-Hive
+select FROM_UNIXTIME( unix_timestamp('20200827', 'yyyyMMdd') , 'YYYY-MM-dd HH:mm:ss' ) as dt;
++----------------------+
+|          dt          |
++----------------------+
+| 2020-08-27 00:00:00  |
++----------------------+
+
+
+
+-Impala
+SELECT from_unixtime(unix_timestamp('20200827', 'yyyyMMdd'));
+=> 2020-08-27 00:00:00
+
+
+
+
+
 
 --------------------------------
 
@@ -40,21 +127,6 @@ SELECT *
    --AND last_run_dt>=substring(cast(date_sub(now(),60) AS STRING),1,10)  --Impala
  
 ;
-
-
-
--------------Conversion
-
------Format conversion
---String (yyyyMMdd) -> String (yyyy-MM-dd)
--Hive
-
--Impala
-SELECT from_unixtime(unix_timestamp('20200827', 'yyyyMMdd'));
-=> 2020-08-27 00:00:00
-
-
-
 
 
 
