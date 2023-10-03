@@ -1,0 +1,78 @@
+
+
+
+
+---SCENARIO: card# with ind_id, hh_id mappings
+data:
+mrch grp: (mgrp1,m1), (mgrp1,m2)
+tran: (m1,tr1,c1), (m2,t2)
+card-map: 
+c1,i1,h1
+c2,i1,h1
+c3,i2,h1
+
+--distinct cards associated for merch group, mid, tran_id
+WITH
+mgrp AS (SELECT 'mgrp1' as mgrp, 'm1' as mid UNION ALL SELECT 'mgrp1' as mgrp, 'm2' as mid)
+,trans as (SELECT 'm1' as mid, 't1' as tr_id, 'c1' as card_id UNION ALL SELECT 'm2' as mid, 't2' as tr_id, 'c1' as card_id)
+,sha_demo AS (
+ SELECT 'c1' as card_id, 'i1' as final_individ, 'h1' as final_hholdid UNION ALL
+ SELECT 'c2' as card_id, 'i1' as final_individ, 'h1' as final_hholdid UNION ALL
+ SELECT 'c3' as card_id, 'i2' as final_individ, 'h1' as final_hholdid
+)
+,trans_demo_map AS (
+ SELECT a.mid, a.tr_id, a.card_id, c.final_individ, c.final_hholdid
+  FROM trans a
+   LEFT JOIN sha_demo C ON C.card_id=a.card_id
+)
+,trans_mid_combine AS (
+ SELECT a.mid,tr_id, count(distinct C.card_id) as ind_id_counts, count(distinct D.card_id) AS hhold_id_counts
+  FROM trans_demo_map a
+   LEFT JOIN sha_demo C ON C.final_individ=a.final_individ
+   LEFT JOIN sha_demo D ON D.final_hholdid=a.final_hholdid
+  GROUP BY a.mid,a.tr_id
+)
+ SELECT A.mgrp, count(1) as tran_count, sum(ind_id_counts) AS ind_id_counts, sum(hhold_id_counts) AS hhold_id_counts
+  FROM mgrp A
+   LEFT JOIN trans_mid_combine B ON A.mid=B.mid
+   GROUP BY A.mgrp
+;
++-------+------------+---------------+-----------------+
+| mgrp  | tran_count | ind_id_counts | hhold_id_counts |
++-------+------------+---------------+-----------------+
+| mgrp1 | 2          | 4             | 6               |
++-------+------------+---------------+-----------------+
+
+
+--tran-cards mappings counts
+WITH
+trans as (SELECT 't1' as tr_id, 'c1' as card_id)
+,sha_demo AS (
+ SELECT 'c1' as card_id, 'i1' as final_individ, 'h1' as final_hholdid UNION ALL
+ SELECT 'c2' as card_id, 'i1' as final_individ, 'h1' as final_hholdid UNION ALL
+ SELECT 'c3' as card_id, 'i2' as final_individ, 'h1' as final_hholdid
+)
+,trans_demo_map AS (
+ SELECT a.tr_id, a.card_id, c.final_individ, c.final_hholdid
+  FROM trans a
+   LEFT JOIN sha_demo C ON C.card_id=a.card_id
+)
+,tran_ind_hh_id_maps AS (
+ SELECT tr_id, C.card_id as sha_ind, C.final_individ, D.card_id as sha_hh,D.final_hholdid
+  FROM trans_demo_map a
+   LEFT JOIN sha_demo C ON C.final_individ=a.final_individ
+   LEFT JOIN sha_demo D ON D.final_hholdid=a.final_hholdid
+) SELECT * FROM tran_ind_hh_id_maps
+
+,tran_ind_id_maps AS (
+ SELECT tr_id, C.card_id
+  FROM trans_demo_map a
+   LEFT JOIN sha_demo C ON C.final_individ=a.final_individ
+) SELECT * FROM tran_ind_id_maps
+
+,tran_hh_id_maps AS (
+ SELECT tr_id, D.card_id
+  FROM trans_demo_map a
+   LEFT JOIN sha_demo D ON D.final_hholdid=a.final_hholdid
+) --SELECT count(1) FROM tran_hh_id_maps
+;
