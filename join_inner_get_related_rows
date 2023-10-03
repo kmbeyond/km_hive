@@ -44,6 +44,32 @@ mgrp AS (SELECT 'mgrp1' as mgrp, 'm1' as mid UNION ALL SELECT 'mgrp1' as mgrp, '
 +-------+------------+---------------+-----------------+
 
 
+
+--get original id for unmatched ind/hh ids
+with cards_list AS (
+  SELECT 'c1' as card_id UNION ALL
+  SELECT 'c2' as card_id
+),card_i_hid AS (
+  SELECT 'c1' as card_id,'i1' as final_individ
+),card_i_hid_map AS (
+ SELECT a.card_id, c.final_individ
+  FROM cards_list a
+   LEFT JOIN card_i_hid C ON C.card_id=a.card_id
+)
+,card_ind_id_maps AS (
+ SELECT C.card_id card_id_mapped, coalesce(a.card_id,C.card_id) as card_id
+  FROM card_i_hid_map a
+   LEFT JOIN card_i_hid C ON C.final_individ=a.final_individ
+)select * from card_ind_id_maps;
++----------------+---------+
+| card_id_mapped | card_id |
++----------------+---------+
+| c1             | c1      |
+| NULL           | c2      |
++----------------+---------+
+
+
+
 --tran-cards mappings counts
 WITH
 trans as (SELECT 't1' as tr_id, 'c1' as card_id)
