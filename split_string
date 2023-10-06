@@ -10,7 +10,9 @@ WITH full_names as (
 )
 ,names_split AS (
  SELECT split(full_name, ' ')[0] as first_name, reverse(split(reverse(full_name), ' ')[0]) as last_name FROM full_names  --hive
-) SELECT first_name, last_name, concat(last_name, '_', substr(first_name,1,1)) as last_fi from names_split;
+)
+SELECT first_name, last_name, concat(last_name, '_', substr(first_name,1,1)) as last_fi from names_split
+ WHERE size(split(full_name,' '))>1;
 
 
 
