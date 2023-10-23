@@ -28,7 +28,7 @@ data AS (
  UNION ALL SELECT 'a' AS id
  UNION ALL SELECT 'b' AS id
 )
-SELECT id, count(1) AS cnt, (count(1)/(sum(count(1)) over ()))*100 AS avg
+SELECT id, count(1) AS cnt, ( count(1)/sum(count(1)) over () )*100 AS avg
  FROM data
  GROUP BY id
 ;
